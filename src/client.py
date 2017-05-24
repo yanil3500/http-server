@@ -18,7 +18,7 @@ def start_client(msg):
     msg = msg + '§'
     if sys.version_info.major == 2:
         msg = msg.decode('utf8')
-    addr_info = socket.getaddrinfo('127.0.0.1', 5009)
+    addr_info = socket.getaddrinfo('127.0.0.1', 5015)
     stream_info = [attr for attr in addr_info if attr[1] == socket.SOCK_STREAM][0]
     client = socket.socket(*stream_info[:3])
     client.connect(stream_info[-1])
@@ -35,7 +35,6 @@ def start_client(msg):
         return res[:-2]
     return res.decode('utf8')[:-1]
 
-if __name__ == '__main__':
-
+if __name__ == '__main__':#  pragma: no cover
     if len(sys.argv) > 1:
         main(sys.argv[1:])
