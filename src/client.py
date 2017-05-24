@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+"""Client for the http server assignment."""
 import socket
 import sys
 
 
 def main(words):  # pragma: no cover
     """
-    main function
+    Joins list of words from system args, then runs start_client with them.
     """
     if words is not '':
         print(start_client(' '.join(words)))
@@ -13,7 +14,9 @@ def main(words):  # pragma: no cover
 
 def start_client(msg):
     """
-    creates the client
+    Adds a signature character to the end of the message. Connects to server and sends
+    string message. Then parses the response using the special character. Removes character
+    to output response.
     """
     msg = msg + '§'
     if sys.version_info.major == 2:
