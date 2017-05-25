@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """Client for the http server assignment."""
+from __future__ import unicode_literals
 import socket
-import sys
 
 
-def main(words):  # pragma: no cover
+def main(words=''):  # pragma: no cover
     """
     Joins list of words from system args, then runs start_client with them.
     """
@@ -18,26 +18,23 @@ def start_client(msg):
     string message. Then parses the response using the special character. Removes character
     to output response.
     """
-    msg = msg + '§'
-    if sys.version_info.major == 2:
-        msg = msg.decode('utf8')
-    addr_info = socket.getaddrinfo('127.0.0.1', 5015)
+    msg = msg + '\r\n\r\n'
+    addr_info = socket.getaddrinfo('127.0.0.1', 5105)
     stream_info = [attr for attr in addr_info if attr[1] == socket.SOCK_STREAM][0]
     client = socket.socket(*stream_info[:3])
     client.connect(stream_info[-1])
     client.sendall(msg.encode('utf8'))
     flag = True
     res = b""
-    while flag is True:
+    while flag:
         more = client.recv(8)
         res += more
-        if res[-1:] == b"\xa7":
+        if res.decode('utf8').endswith('\r\n\r\n'):
             flag = False
+    client.shutdown(socket.SHUT_WR)
     client.close()
-    if sys.version_info.major == 2:
-        return res[:-2]
-    return res.decode('utf8')[:-1]
+    return res.decode('utf8')
 
-if __name__ == '__main__':#  pragma: no cover
-    if len(sys.argv) > 1:
-        main(sys.argv[1:])
+
+if __name__ == '__main__':  # pragma: no cover
+    main()
