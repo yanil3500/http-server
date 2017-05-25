@@ -19,7 +19,7 @@ def start_client(msg):
     to output response.
     """
     msg = msg + '\r\n\r\n'
-    addr_info = socket.getaddrinfo('127.0.0.1', 5179)
+    addr_info = socket.getaddrinfo('127.0.0.1', 5189)
     stream_info = [attr for attr in addr_info if attr[1] == socket.SOCK_STREAM][0]
     client = socket.socket(*stream_info[:3])
     client.connect(stream_info[-1])

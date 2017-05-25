@@ -12,11 +12,9 @@ CURRENT_PATH = '../src/webroot/'
 def main():  # pragma: no cover
     """Main server loop. Logs data into log variable until it finds a certain character. Then returns response."""
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
-    address = ('127.0.0.1', 5179)
+    address = ('127.0.0.1', 5189)
     server.bind(address)
     server.listen(1)
-    # path = os.path.join(CURRENT_PATH, 'sample.txt')
-    # print(open(path).read())
     while True:
         try:
             connection, address = server.accept()
@@ -37,16 +35,29 @@ def main():  # pragma: no cover
             server.close()
             sys.exit(0)
 
+# foo.jpeg - Content-Type: image/jpeg
+# foo.png - Content-Type: image/png
+# bar.txt - Content-Type: text/plain
+# baz.html - Content-Type: text/html
 
 def response_ok(URI):  # pragma: no cover
     file_path = os.path.join(CURRENT_PATH, URI[1:])
-    if os.path.isfile(file_path) and not file_path.endswith('.'):
-        
+    type_of_file = file_path.split('.')[-1]
+    content_type_switcher = {
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'txt': 'text/plain',
+        'html': 'text/html'
+    }
+    if os.path.isfile(file_path) and URI is not '.' or '..':
+        content = open(file_path).read()
+        file_size = os.path.getsize(file_path)
     else:
         raise Exception(response_error(404))
     today_date = str(formatdate(usegmt=True))
-    response = 'HTTP/1.1 200 OK \r\nDate: ' + today_date + '\r\nContent-Type: text/plain \r\n\r\n'
+    response = 'HTTP/1.1 200 OK \r\nDate: {}\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n{}\r\n\r\n'.format(today_date, file_size, content_type_switcher[type_of_file], content)
     """Returns 200 response."""
+    print(response)
     return response
 
 
@@ -56,16 +67,15 @@ def response_error(error_code):
     switch_dict = {
         505: "HTTP/1.1 505 HTTP Version Not Supported \r\nContent-Type: text/plain \r\n\r\n",
         501: "HTTP/1.1 501 Method Not Implemented \r\nContent-Type: text/plain \r\n\r\n",
-        404: "HTTP/1.1 404 Not Found \r\nContent-Type: text/plain \r\n\r\n"
+        400: "HTTP/1.1 400 Bad Request \r\nContent-Type: text/plain \r\n\r\n"
     }
-    return switch_dict.get(error_code, "HTTP/1.1 400 Bad Request \r\nContent-Type: text/plain \r\n\r\n")
+    return switch_dict.get(error_code, "HTTP/1.1 404 Not Found \r\nContent-Type: text/plain \r\n\r\n")
 
 
 def parse_request(request):
     """
     responsible for parsing http requests
     """
-    print('before split'.format(request))
     words = request.split()
     parts_of_request = ['GET', 'http/1.1', 'HOST:']
     request_switch_dict = {
@@ -75,7 +85,7 @@ def parse_request(request):
     }
 
     if len(words) is not 5:
-        raise Exception(request_switch_dict.get(len(words), 400))
+        raise Exception(response_error(400))
     if words[0] != parts_of_request[0]:
         raise Exception(response_error(request_switch_dict.get(parts_of_request[0])))
     elif words[2] != parts_of_request[1]:
