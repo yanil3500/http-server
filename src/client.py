@@ -9,7 +9,7 @@ def main(words=''):  # pragma: no cover
     Joins list of words from system args, then runs start_client with them.
     """
     if words is not '':
-        print(start_client(' '.join(words)))
+        start_client(' '.join(words))
 
 
 def start_client(msg):
@@ -19,7 +19,7 @@ def start_client(msg):
     to output response.
     """
     msg = msg + '\r\n\r\n'
-    addr_info = socket.getaddrinfo('127.0.0.1', 5105)
+    addr_info = socket.getaddrinfo('127.0.0.1', 5179)
     stream_info = [attr for attr in addr_info if attr[1] == socket.SOCK_STREAM][0]
     client = socket.socket(*stream_info[:3])
     client.connect(stream_info[-1])
@@ -37,4 +37,4 @@ def start_client(msg):
 
 
 if __name__ == '__main__':  # pragma: no cover
-    main()
+    main('GET /a_web_page.html http/1.1\r\n\r\nHOST: www.hostythehostess.gov:80\r\n\r\n'.split(' '))
