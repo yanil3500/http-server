@@ -1,2 +1,2 @@
 GET /INDEX.HTML http/1.1
-HOSSSSSSSST: www.hostythehostess.gov:80
+HOSdrgfzeryT: www.hostythehostess.gov:80
