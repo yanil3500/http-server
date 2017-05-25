@@ -20,9 +20,9 @@ def start_client(msg):
     to output response.
     """
     msg = msg + '\r\n\r\n'
-    if sys.version_info.major == 2:
-        msg = msg.decode('utf8')
-    addr_info = socket.getaddrinfo('127.0.0.1', 5000)
+    # if sys.version_info.major == 2:
+    #     msg = msg.decode('utf8')
+    addr_info = socket.getaddrinfo('127.0.0.1', 5007)
     stream_info = [attr for attr in addr_info if attr[1] == socket.SOCK_STREAM][0]
     client = socket.socket(*stream_info[:3])
     client.connect(stream_info[-1])
@@ -36,9 +36,10 @@ def start_client(msg):
             flag = False
     client.shutdown(socket.SHUT_WR)
     client.close()
-    if sys.version_info.major == 2:
-        return res
     return res.decode('utf8')
+    # if sys.version_info.major == 2:
+    #     return res
+    # )
 
 
 if __name__ == '__main__':  # pragma: no cover

@@ -8,7 +8,7 @@ import sys
 def main():  # pragma: no cover
     """Main server loop. Logs data into log variable until it finds a certain character. Then returns response."""
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
-    address = ('127.0.0.1', 5000)
+    address = ('127.0.0.1', 5007)
     server.bind(address)
     server.listen(1)
     while True:
@@ -38,19 +38,27 @@ def response_ok(URI):  # pragma: no cover
     return response
 
 def response_error(error_code):
+    # Idea for switch dictionary: https://www.pydanny.com/why-doesnt-python-have-switch-case.html
     """Returns 500 response."""
-    if error_code == 505:
-        response = "HTTP/1.1 505 HTTP Version Not Supported \r\nContent-Type: text/plain \r\n\r\n"
-    elif error_code == 501:
-        response = "HTTP/1.1 501 Method Not Implemented \r\nContent-Type: text/plain \r\n\r\n"
-    else:
-        response = "HTTP/1.1 400 Bad Request \r\nContent-Type: text/plain \r\n\r\n"
-    return response
-
+    switch = {
+        505: "HTTP/1.1 505 HTTP Version Not Supported \r\nContent-Type: text/plain \r\n\r\n",
+        501: "HTTP/1.1 501 Method Not Implemented \r\nContent-Type: text/plain \r\n\r\n",
+    }
+    return switch.get(error_code, "HTTP/1.1 400 Bad Request \r\nContent-Type: text/plain \r\n\r\n")
 
 
 def parse_request(request):
+    """
+    responsible for parsing http requests
+    """
     words = request.split()
+    parts_of_request = ['GET', 'http/1.1', 'HOST']
+
+    for index in range(len(parts_of_request)):
+        if index != 1:
+            if word[index] is not parts_of_request[index]:
+                return  
+
     if len(words) is not 5:
         raise Exception(response_error(400))
     if words[0] == 'GET':
@@ -65,7 +73,7 @@ def parse_request(request):
         raise Exception(response_error(501))
 
 
-if __name__== '__main__':#  pragma: no cover
+if __name__ == '__main__':  # pragma: no cover
     main()
 
 
