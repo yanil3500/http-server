@@ -14,7 +14,7 @@ CURRENT_PATH = '../src'
 def main():  # pragma: no cover
     """Main server loop. Logs data into log variable until it finds a certain character. Then returns response."""
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
-    address = ('127.0.0.1', 5262)
+    address = ('127.0.0.1', 5226)
     server.bind(address)
     server.listen(1)
     while True:
@@ -28,8 +28,8 @@ def main():  # pragma: no cover
                 if log.decode('utf8').endswith('\r\n\r\n'):
                     flag = False
             sys.stdout.write(log.decode('utf8'))
-            URI = parse_request(log.decode('utf8'), connection)
-            content = resolve_uri(URI, connection)
+            URI = parse_request(log.decode('utf8'))
+            content = resolve_uri(URI)
             response = response_ok(content)
             connection.sendall(response.encode('utf8'))
             connection.close()
@@ -37,6 +37,27 @@ def main():  # pragma: no cover
             server.shutdown(socket.SHUT_WR)
             server.close()
             sys.exit(0)
+        except TypeError:
+            response = response_error(404)
+            connection.sendall(response.encode('utf8'))
+            connection.close()
+        except LookupError:
+            response = response_error(501)
+            connection.sendall(response.encode('utf8'))
+            connection.close()
+        except ValueError:
+            response = response_error(400)
+            connection.sendall(response.encode('utf8'))
+            connection.close()
+        except IOError:
+            response = response_error(404)
+            connection.sendall(response.encode('utf8'))
+            connection.close()
+        except NameError:
+            response = response_error(505)
+            connection.sendall(response.encode('utf8'))
+            connection.close()
+
 
 
 def response_ok(body_response):  # pragma: no cover
@@ -46,17 +67,15 @@ def response_ok(body_response):  # pragma: no cover
     content, file_size, content_type = body_response
     today_date = str(formatdate(usegmt=True))
     response = 'HTTP/1.1 200 OK \r\nDate: {}\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n{}\r\n\r\n'.format(today_date, file_size, content_type, content)
-    """Returns 200 response."""
-    print(response)
     return response
 
 
-def resolve_uri(URI, connection):
+
+def resolve_uri(URI):
     """
     function determince the content type, and generates the content for the http response
     """
     file_path = os.path.join(CURRENT_PATH, URI[1:])
-    print(file_path)
     type_of_file = file_path.split('.')[-1]
     content_type_switcher = {
         'jpg': 'image/jpeg',
@@ -76,12 +95,10 @@ def resolve_uri(URI, connection):
     elif os.path.isfile(file_path) and URI is not '.' or '..':
         content = open(file_path).read()
         file_size = os.path.getsize(file_path)
-    else:
-        raise Exception(response_error(404, connection))
     return (content, file_size, content_type_switcher[type_of_file])
 
 
-def response_error(error_code, connection):
+def response_error(error_code):
     # Idea for switch dictionary: https://www.pydanny.com/why-doesnt-python-have-switch-case.html
     """Returns 500 response."""
     switch_dict = {
@@ -90,31 +107,24 @@ def response_error(error_code, connection):
         400: "HTTP/1.1 400 Bad Request \r\nContent-Type: text/plain \r\n\r\n",
     }
     response = switch_dict.get(error_code, "HTTP/1.1 404 Not Found \r\nContent-Type: text/plain \r\n\r\n")
-    connection.sendall(response.encode('utf8'))
     return response
 
 
-def parse_request(request, connection):
+def parse_request(request):
     """
     responsible for parsing http requests
     """
     words = request.split()
     print('Inside of parse_request: {} '.format(words))
     parts_of_request = ['GET', 'HTTP/1.1', 'Host:']
-    request_switch_dict = {
-        'GET': 501,
-        'HTTP/1.1': 505,
-        'Host:': 400
-    }
     if words[0] != parts_of_request[0]:
-        raise Exception(response_error(request_switch_dict.get(parts_of_request[0]), connection))
+        raise LookupError
     elif words[2] != parts_of_request[1]:
-        raise Exception(response_error(request_switch_dict.get(parts_of_request[1]), connection))
+        raise NameError
     elif words[3] != parts_of_request[2]:
-        raise Exception(response_error(request_switch_dict.get(parts_of_request[2]), connection))
+        raise ValueError
     else:
         return words[1]
-
 
 if __name__ == '__main__':  # pragma: no cover
     main()
