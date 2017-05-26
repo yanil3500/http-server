@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Server for http server assignment."""
+"""Concurrency server for the http server project."""
 from __future__ import unicode_literals
 from email.utils import formatdate
 from html_maker import html_helper
@@ -11,19 +11,15 @@ import os
 CURRENT_PATH = '../src'
 
 
-def main():  # pragma: no cover
+def main(socket, address):  # pragma: no cover
     """Main server loop. Logs data into log variable until it finds a certain character. Then returns response."""
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
-    address = ('127.0.0.1', 10001)
-    server.bind(address)
-    server.listen(1)
     while True:
         try:
-            connection, address = server.accept()
+            #socket, address = server.accept()
             log = b""
             flag = True
             while flag is True:
-                more = connection.recv(8)
+                more = socket.recv(8)
                 log += more
                 if log.decode('utf8').endswith('\r\n\r\n'):
                     flag = False
@@ -31,32 +27,32 @@ def main():  # pragma: no cover
             URI = parse_request(log.decode('utf8'))
             content = resolve_uri(URI)
             response = response_ok(content)
-            connection.sendall(response.encode('utf8'))
-            connection.close()
+            socket.sendall(response.encode('utf8'))
+            socket.close()
         except KeyboardInterrupt:
             server.shutdown(socket.SHUT_WR)
             server.close()
             sys.exit(0)
         except TypeError:
             response = response_error(404)
-            connection.sendall(response.encode('utf8'))
-            connection.close()
+            socket.sendall(response.encode('utf8'))
+            socket.close()
         except LookupError:
             response = response_error(501)
-            connection.sendall(response.encode('utf8'))
-            connection.close()
+            socket.sendall(response.encode('utf8'))
+            socket.close()
         except ValueError:
             response = response_error(400)
-            connection.sendall(response.encode('utf8'))
-            connection.close()
+            socket.sendall(response.encode('utf8'))
+            socket.close()
         except IOError:
             response = response_error(404)
-            connection.sendall(response.encode('utf8'))
-            connection.close()
+            socket.sendall(response.encode('utf8'))
+            socket.close()
         except NameError:
             response = response_error(505)
-            connection.sendall(response.encode('utf8'))
-            connection.close()
+            socket.sendall(response.encode('utf8'))
+            socket.close()
 
 
 
@@ -125,6 +121,9 @@ def parse_request(request):
         raise ValueError
     else:
         return words[1]
-
 if __name__ == '__main__':  # pragma: no cover
-    main()
+    from gevent.server import StreamServer
+    from gevent.monkey import patch_all
+    patch_all()
+    server = StreamServer(('127.0.0.1', 10001), main)
+    server.serve_forever()
