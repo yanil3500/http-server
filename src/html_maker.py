@@ -1,5 +1,8 @@
 
 def html_helper(file_name='', parameters=[]):
+    """
+    html helper generates the html for directory listing
+    """
     html_file = open(file_name, "w")
     print(parameters)
     html_file.write(html_maker(parameters))
@@ -8,11 +11,14 @@ def html_helper(file_name='', parameters=[]):
 
 
 def html_maker(parameters):
+    """
+    html_maker generates the html for directory listing
+    """
     file1, file2, file3 = parameters
     return """
 <html>
     <head>
-        <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
+        <link rel="shortcut icon" href="data:image/x-icon" type="image/x-icon">
         <title>directory</title>
     </head>
     <body>

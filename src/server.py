@@ -14,7 +14,7 @@ CURRENT_PATH = '../src'
 def main():  # pragma: no cover
     """Main server loop. Logs data into log variable until it finds a certain character. Then returns response."""
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
-    address = ('127.0.0.1', 5261)
+    address = ('127.0.0.1', 5262)
     server.bind(address)
     server.listen(1)
     while True:
@@ -40,6 +40,9 @@ def main():  # pragma: no cover
 
 
 def response_ok(body_response):  # pragma: no cover
+    """
+    function is responsible for returning a 200 OK response
+    """
     content, file_size, content_type = body_response
     today_date = str(formatdate(usegmt=True))
     response = 'HTTP/1.1 200 OK \r\nDate: {}\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n{}\r\n\r\n'.format(today_date, file_size, content_type, content)
@@ -49,6 +52,9 @@ def response_ok(body_response):  # pragma: no cover
 
 
 def resolve_uri(URI, connection):
+    """
+    function determince the content type, and generates the content for the http response
+    """
     file_path = os.path.join(CURRENT_PATH, URI[1:])
     print(file_path)
     type_of_file = file_path.split('.')[-1]
