@@ -2,12 +2,14 @@
 """Server for http server assignment."""
 from __future__ import unicode_literals
 from email.utils import formatdate
+from html_maker import html_helper
 import socket
 import sys
 import os
 
 
 CURRENT_PATH = '../src'
+
 
 def main():  # pragma: no cover
     """Main server loop. Logs data into log variable until it finds a certain character. Then returns response."""
@@ -57,19 +59,26 @@ def main():  # pragma: no cover
             connection.close()
 
 
-def response_ok(body_response):  # pragma: no cover 
-    """Returns 200 response."""
+
+def response_ok(body_response):  # pragma: no cover
+    """
+    function is responsible for returning a 200 OK response
+    """
     content, file_size, content_type = body_response
     today_date = str(formatdate(usegmt=True))
     response = 'HTTP/1.1 200 OK \r\nDate: {}\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n{}\r\n\r\n'.format(today_date, file_size, content_type, content)
     return response
 
 
+
 def resolve_uri(URI):
+    """
+    function determince the content type, and generates the content for the http response
+    """
     file_path = os.path.join(CURRENT_PATH, URI[1:])
     type_of_file = file_path.split('.')[-1]
     content_type_switcher = {
-        'jpg': 'image/jpg',
+        'jpg': 'image/jpeg',
         'png': 'image/png',
         'txt': 'text/plain',
         'html': 'text/html',
@@ -78,8 +87,11 @@ def resolve_uri(URI):
     }
     if os.path.isdir(file_path):
         content = os.listdir(os.path.join(os.getcwd(), file_path))
-        type_of_file = 'directory'
-        file_size = 0
+        print(content)
+        content = html_helper('response.html', content)
+        type_of_file = 'html'
+        file_size = os.stat(os.path.join(os.getcwd(), file_path)).st_size
+        content = open(os.path.join(os.getcwd(),'response.html')).read()
     elif os.path.isfile(file_path) and URI is not '.' or '..':
         content = open(file_path).read()
         file_size = os.path.getsize(file_path)
@@ -103,6 +115,7 @@ def parse_request(request):
     responsible for parsing http requests
     """
     words = request.split()
+    print('Inside of parse_request: {} '.format(words))
     parts_of_request = ['GET', 'HTTP/1.1', 'Host:']
     if words[0] != parts_of_request[0]:
         raise LookupError

@@ -9,7 +9,7 @@ def main(words=''):  # pragma: no cover
     Joins list of words from system args, then runs start_client with them.
     """
     if words is not '':
-        print(start_client(' '.join(words)))
+        start_client(' '.join(words))
 
 
 def start_client(msg):
