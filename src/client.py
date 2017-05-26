@@ -1,20 +1,17 @@
+"""A sample client for our echo server. This code sends any message you give it to the server, and then waits for and prints the response."""
 # -*- coding: utf-8 -*-
 import socket
 import sys
 
 
 def main(words):  # pragma: no cover
-    """
-    main function
-    """
+    """Joins words, which should be a list. Then it calls start_client with the words, and prints the result."""
     if words is not '':
         print(start_client(' '.join(words)))
 
 
 def start_client(msg):
-    """
-    creates the client
-    """
+    """Initialize and send the message, placing a special character at the end so that the server can recognize when to stop. Then waits for and returns the response."""
     msg = msg + '§'
     if sys.version_info.major == 2:
         msg = msg.decode('utf8')
@@ -35,7 +32,8 @@ def start_client(msg):
         return res[:-2]
     return res.decode('utf8')[:-1]
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
+    """Start main with the system argument words on start."""
 
     if len(sys.argv) > 1:
         main(sys.argv[1:])

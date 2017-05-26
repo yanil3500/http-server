@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import socket
 import sys
-
+"""A basic server that listens to a message and sends a parroted response back to whoever sent it."""
 
 def main():  # pragma: no cover
+    """Listen for a message, then respond with same message."""
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
     address = ('127.0.0.1', 5009)
     server.bind(address)
@@ -28,5 +29,6 @@ def main():  # pragma: no cover
             sys.exit()
 
 
-if __name__=='__main__':
+if __name__=='__main__':  # pragma: no cover
+    """Run main on start."""
     main()
