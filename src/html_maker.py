@@ -18,7 +18,6 @@ def html_maker(parameters):
     return """
 <html>
     <head>
-        <link rel="shortcut icon" href="data:image/x-icon" type="image/x-icon">
         <title>directory</title>
     </head>
     <body>
