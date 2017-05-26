@@ -2,18 +2,19 @@
 """Server for http server assignment."""
 from __future__ import unicode_literals
 from email.utils import formatdate
+from html_maker import html_helper
 import socket
 import sys
 import os
 
-"<div>hello</div>"
 
 CURRENT_PATH = '../src'
+
 
 def main():  # pragma: no cover
     """Main server loop. Logs data into log variable until it finds a certain character. Then returns response."""
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
-    address = ('127.0.0.1', 5215)
+    address = ('127.0.0.1', 5261)
     server.bind(address)
     server.listen(1)
     while True:
@@ -37,12 +38,8 @@ def main():  # pragma: no cover
             server.close()
             sys.exit(0)
 
-# foo.jpeg - Content-Type: image/jpeg
-# foo.png - Content-Type: image/png
-# bar.txt - Content-Type: text/plain
-# baz.html - Content-Type: text/html
 
-def response_ok(body_response):  # pragma: no cover 
+def response_ok(body_response):  # pragma: no cover
     content, file_size, content_type = body_response
     today_date = str(formatdate(usegmt=True))
     response = 'HTTP/1.1 200 OK \r\nDate: {}\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n{}\r\n\r\n'.format(today_date, file_size, content_type, content)
@@ -56,7 +53,7 @@ def resolve_uri(URI, connection):
     print(file_path)
     type_of_file = file_path.split('.')[-1]
     content_type_switcher = {
-        'jpeg': 'image/jpeg',
+        'jpg': 'image/jpeg',
         'png': 'image/png',
         'txt': 'text/plain',
         'html': 'text/html',
@@ -65,8 +62,11 @@ def resolve_uri(URI, connection):
     }
     if os.path.isdir(file_path):
         content = os.listdir(os.path.join(os.getcwd(), file_path))
-        type_of_file = 'directory'
-        file_size = 0
+        print(content)
+        content = html_helper('response.html', content)
+        type_of_file = 'html'
+        file_size = os.stat(os.path.join(os.getcwd(), file_path)).st_size
+        content = open(os.path.join(os.getcwd(),'response.html')).read()
     elif os.path.isfile(file_path) and URI is not '.' or '..':
         content = open(file_path).read()
         file_size = os.path.getsize(file_path)
@@ -93,11 +93,12 @@ def parse_request(request, connection):
     responsible for parsing http requests
     """
     words = request.split()
+    print('Inside of parse_request: {} '.format(words))
     parts_of_request = ['GET', 'HTTP/1.1', 'Host:']
     request_switch_dict = {
         'GET': 501,
-        'http/1.1': 505,
-        'HOST:': 400
+        'HTTP/1.1': 505,
+        'Host:': 400
     }
     if words[0] != parts_of_request[0]:
         raise Exception(response_error(request_switch_dict.get(parts_of_request[0]), connection))
@@ -111,13 +112,3 @@ def parse_request(request, connection):
 
 if __name__ == '__main__':  # pragma: no cover
     main()
-
-
-
-    #"GET /index.html HTTP/1.1\r\nHost: www.example.com"
-# GET /path/to/index.html HTTP/1.0<CRLF>
-# <CRLF>
-    #message.decode('utf8').endswith(\r\n\r\n):
-        #flag = False
-    #also maybe some logic to ensure is a proper request?
-    #IDK maybe not.

@@ -4,7 +4,7 @@ setup for http-server
 from setuptools import setup
 
 DEPENDENCIES = ['pytest', 'pytest-cov', 'ipython']
-MODULES = ['server', 'client']
+MODULES = ['server', 'client', 'html_maker']
 EXTRA_PACKAGES = {
     'test': ['tox']
 }
