@@ -3,52 +3,27 @@ from __future__ import unicode_literals
 """Testing for the http server assignment"""
 import pytest
 
-PARAMETERS_FOR_CLIENT = [
-    ('the quick brown fox jumped over the lazy dog!', 'HTTP/1.1 200 OK \r\nContent-Type: text/plain \r\n\r\n'),
-    ('the man, a plan, and panama!', 'HTTP/1.1 200 OK \r\nContent-Type: text/plain \r\n\r\n'),
-    ('a!', 'HTTP/1.1 200 OK \r\nContent-Type: text/plain \r\n\r\n'),
-    ('!', 'HTTP/1.1 200 OK \r\nContent-Type: text/plain \r\n\r\n'),
-    ('1234567!', 'HTTP/1.1 200 OK \r\nContent-Type: text/plain \r\n\r\n'),
-    ('#()@#%^&!', 'HTTP/1.1 200 OK \r\nContent-Type: text/plain \r\n\r\n'),
-    ('®!', 'HTTP/1.1 200 OK \r\nContent-Type: text/plain \r\n\r\n'),
-    ('GET /INDEX.HTML http/1.1\r\n\r\nHOST: www.hostythehostess.gov:80\r\n\r\n', 'HTTP/1.1 200 OK \r\nContent-Type: text/plain \r\n\r\n')
-]
 
-PARAMETERS_FOR_PARSE_CLIENT = [
-    ("GET /INDEX.HTML http/1.1\r\n\r\nHOST: www.hostythehostess.gov:80\r\n\r\n", 'HTTP/1.1 200 OK \r\nContent-Type: text/plain \r\n\r\n')
+PARAMETERS = [
+    ("GET /webroot/sample.txt HTTP/1.1\r\n\r\nHost: www.hostythehostess.gov:80\r\n\r\n", ['HTTP/1.1', '200', 'OK'])
 ]
 PARAMETERS_FOR_PARSE_REQUEST_RAISE_ERROR = [
-    ("GsdT /INDEX.HTML http/1.1\r\n\r\nHOST: www.hostythehostess.gov:80\r\n\r\n"),
-    ("GET /INDEX.HTML http/1.2\r\n\r\nHOST: www.hostythehostess.gov:80\r\n\r\n"),
-    ("GET /INDEX.HTML http/1.1\r\n\r\nH123T: www.hostythehostess.gov:80\r\n\r\n")
+    ("GsdT /INDEX.HTML HTTP/1.1\r\n\r\nHost: www.hostythehostess.gov:80\r\n\r\n", "HTTP/1.1 501 Method Not Implemented \r\nContent-Type: text/plain \r\n\r\n"),
+    ("GET /INDEX.HTML HTTP/1.2\r\n\r\nHost: www.hostythehostess.gov:80\r\n\r\n", "HTTP/1.1 505 HTTP Version Not Supported \r\nContent-Type: text/plain \r\n\r\n"),
+    ("GET /INDEX.HTML HTTP/1.1\r\n\r\nH123T: www.hostythehostess.gov:80\r\n\r\n", "HTTP/1.1 400 Bad Request \r\nContent-Type: text/plain \r\n\r\n"),
+    ("GET /webroot/a_web_page_that_does_not_exist.html HTTP/1.1\r\n\r\nHost: www.hostythehostess.gov:80\r\n\r\n", "HTTP/1.1 404 Not Found \r\nContent-Type: text/plain \r\n\r\n")
 
 ]
-PARAMETERS_FOR_RESPONSE_ERROR = [
-    (505, 'HTTP/1.1 505 HTTP Version Not Supported \r\nContent-Type: text/plain \r\n\r\n'),
-    (501, 'HTTP/1.1 501 Method Not Implemented \r\nContent-Type: text/plain \r\n\r\n'),
-    (400, 'HTTP/1.1 400 Bad Request \r\nContent-Type: text/plain \r\n\r\n')
-]
 
 
-@pytest.mark.parametrize('message, result', PARAMETERS_FOR_CLIENT)
-def test_start_client(message, result):
-    """Test if any request returns an HTTP status response."""
+@pytest.mark.parametrize('http_request, response', PARAMETERS_FOR_PARSE_REQUEST_RAISE_ERROR)
+def test_parse_request_raise_error(http_request, response):
+    """Tests all error types from the server."""
     from client import start_client
-    assert start_client(message) == result
+    assert start_client(http_request) == response
 
-
-@pytest.mark.parametrize('status_code, response', PARAMETERS_FOR_RESPONSE_ERROR)
-def test_response_error(status_code, response):
-    """Test if the error function returns the correct status response."""
-    from server import response_error
-    assert response_error(status_code) == response
-
-
-@pytest.mark.parametrize('http_request', PARAMETERS_FOR_PARSE_REQUEST_RAISE_ERROR)
-def test_parse_request_raise_error(http_request):
-    """
-    tests to see if appropriate exceptions are raised
-    """
-    from server import parse_request
-    with pytest.raises(Exception):
-        parse_request(http_request)
+@pytest.mark.parametrize('http_request, response', PARAMETERS)
+def test_parse_request_raise_error(http_request, response):
+    """Tests a properly formatted GET request, looking for a 200 response."""
+    from client import start_client
+    assert start_client(http_request).split(' ')[:3] == response

@@ -18,7 +18,7 @@ def start_client(msg):
     string message. Then parses the response using the special character. Removes character
     to output response.
     """
-    addr_info = socket.getaddrinfo('127.0.0.1', 5213)
+    addr_info = socket.getaddrinfo('127.0.0.1', 5226)
     stream_info = [attr for attr in addr_info if attr[1] == socket.SOCK_STREAM][0]
     client = socket.socket(*stream_info[:3])
     client.connect(stream_info[-1])
@@ -36,4 +36,4 @@ def start_client(msg):
 
 
 if __name__ == '__main__':  # pragma: no cover
-    main('GET /webroot/images http/1.1\r\n\r\nHOST: www.hostythehostess.gov:80\r\n\r\n'.split(' '))
+    main("GET /webroot/sample.txt HTTP/1.1\r\n\r\nHost: www.hostythehostess.gov:80\r\n\r\n".split(' '))
