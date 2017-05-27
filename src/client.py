@@ -2,6 +2,7 @@
 """Client for the http server assignment."""
 from __future__ import unicode_literals
 import socket
+import io
 
 
 def main(words=''):  # pragma: no cover
@@ -18,6 +19,7 @@ def start_client(msg):
     string message. Then parses the response using the special character. Removes character
     to output response.
     """
+
     addr_info = socket.getaddrinfo('127.0.0.1', 10001)
     stream_info = [attr for attr in addr_info if attr[1] == socket.SOCK_STREAM][0]
     client = socket.socket(*stream_info[:3])
@@ -28,6 +30,9 @@ def start_client(msg):
     while flag:
         more = client.recv(8)
         res += more
+        if res.endswith(b'\xff\xd8'):
+            flag = False
+            return open(res, 'rb')
         if res.decode('utf8').endswith('\r\n\r\n'):
             flag = False
     client.shutdown(socket.SHUT_WR)
@@ -36,4 +41,4 @@ def start_client(msg):
 
 
 if __name__ == '__main__':  # pragma: no cover
-    main("GET /client.py HTTP/1.1\r\n\r\nHost: www.hostythehostess.gov:80\r\n\r\n".split(' '))
+    main("GET%/webroot%HTTP/1.1\r\nHost:%{}\r\n\r\n".format(socket.gethostname()).split('%'))

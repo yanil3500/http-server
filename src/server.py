@@ -2,13 +2,13 @@
 """Server for http server assignment."""
 from __future__ import unicode_literals
 from email.utils import formatdate
-from html_maker import html_helper
+import html_maker
 import socket
 import sys
 import os
 
 
-CURRENT_PATH = '../src'
+CURRENT_PATH = 'src'
 
 
 def main():  # pragma: no cover
@@ -59,7 +59,6 @@ def main():  # pragma: no cover
             connection.close()
 
 
-
 def response_ok(body_response):  # pragma: no cover
     """
     function is responsible for returning a 200 OK response
@@ -68,7 +67,6 @@ def response_ok(body_response):  # pragma: no cover
     today_date = str(formatdate(usegmt=True))
     response = 'HTTP/1.1 200 OK \r\nDate: {}\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n{}\r\n\r\n'.format(today_date, file_size, content_type, content)
     return response
-
 
 
 def resolve_uri(URI):
@@ -86,16 +84,31 @@ def resolve_uri(URI):
         'directory': 'directory'
     }
     if os.path.isdir(file_path):
-        content = os.listdir(os.path.join(os.getcwd(), file_path))
-        print(content)
-        content = html_helper('response.html', content)
-        type_of_file = 'html'
-        file_size = os.stat(os.path.join(os.getcwd(), file_path)).st_size
-        content = open(os.path.join(os.getcwd(),'response.html'), 'rb').read()
-    elif os.path.isfile(file_path) and URI is not '.' or '..':
-        content = open(file_path).read()
-        file_size = os.path.getsize(file_path)
-    return (content, file_size, content_type_switcher[type_of_file])
+        if not file_path.endswith('images'):
+            content = html_maker.html_str_maker(os.listdir(os.path.join(os.getcwd(), file_path)), f_path=file_path)
+            type_of_file = 'html'
+            file_size = len(content)
+        else:
+            content = html_maker.html_str_maker(os.listdir(os.path.join(os.getcwd(), file_path)), file_path)
+            type_of_file = 'html'
+            file_size = len(content)
+    else:
+        if os.path.isfile(file_path):
+            print('Inside of endswith(jpg): {}'.format(file_path))
+            if file_path.endswith('jpg'):
+                type_of_file = 'jpg'
+                with (file_path, 'rb') as img:
+                    content += img.read()
+                print('jpgs: {}'.format(content))
+                file_size = os.path.getsize(file_path)
+            elif file_path.endswith('png'):
+                type_of_file = 'png'
+                content = open(file_path.read(file_path, 'rb'))
+                file_size = os.path.getsize(file_path)
+            else:
+                content = open(file_path).read()
+                file_size = os.path.getsize(file_path)
+    return content, file_size, content_type_switcher[type_of_file]
 
 
 def response_error(error_code):
@@ -115,16 +128,20 @@ def parse_request(request):
     responsible for parsing http requests
     """
     words = request.split()
-    print('Inside of parse_request: {} '.format(words))
+    print('Request: {}'.format(request))
     parts_of_request = ['GET', 'HTTP/1.1', 'Host:']
     if words[0] != parts_of_request[0]:
+        print('Lookup Error: {} '.format(words[0]))
         raise LookupError
     elif words[2] != parts_of_request[1]:
+        print('Name Error: {} '.format(words[2]))
         raise NameError
     elif words[3] != parts_of_request[2]:
+        print('Value Error: {} '.format(words[3]))
         raise ValueError
     else:
         return words[1]
+
 
 if __name__ == '__main__':  # pragma: no cover
     main()
