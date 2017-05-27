@@ -21,9 +21,3 @@ def test_parse_request_raise_error(http_request, response):
     """Tests all error types from the server."""
     from client import start_client
     assert start_client(http_request) == response
-
-@pytest.mark.parametrize('http_request, response', PARAMETERS)
-def test_parse_request_raise_error(http_request, response):
-    """Tests a properly formatted GET request, looking for a 200 response."""
-    from client import start_client
-    assert start_client(http_request).split(' ')[:3] == response

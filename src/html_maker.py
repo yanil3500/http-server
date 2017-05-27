@@ -1,24 +1,24 @@
 import os
 
 
-def html_helper(file_location='', file_name='', parameters=[]):
+def html_helper(file_location='', file_name='', parameters=[]):  # pragmals: no cover
     """
     html helper generates the html for directory listing
     """
     html_file = open(os.path.join(file_location, file_name), "w")
-    html_file.write(__html_maker(parameters))
+    html_file.write(_html_maker(parameters))
     html_file.close()
     return html_file
 
 
-def html_str_maker(parameters=[], f_path=''):
+def html_str_maker(parameters=[], f_path=''):  # pragma: no cover
     """
     generates a str representation of an html file
     """
-    return __html_maker(str(f_path), parameters)
+    return _html_maker(str(f_path), parameters)
 
 
-def __html_maker(f_path, parameters):
+def _html_maker(f_path, parameters):  # pragma: no cover
     """
     html_maker generates the html a directory listing
     """

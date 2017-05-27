@@ -2,13 +2,13 @@
 """Concurrency server for the http server project."""
 from __future__ import unicode_literals
 from email.utils import formatdate
-from html_maker import html_helper
+import html_maker
 import socket
 import sys
 import os
 
 
-CURRENT_PATH = '../src'
+CURRENT_PATH = 'src'
 
 
 def main(socket, address):  # pragma: no cover
@@ -55,7 +55,6 @@ def main(socket, address):  # pragma: no cover
             socket.close()
 
 
-
 def response_ok(body_response):  # pragma: no cover
     """
     function is responsible for returning a 200 OK response
@@ -66,10 +65,9 @@ def response_ok(body_response):  # pragma: no cover
     return response
 
 
-
 def resolve_uri(URI):
     """
-    function determince the content type, and generates the content for the http response
+    function determine the content type, and generates the content for the http response
     """
     file_path = os.path.join(CURRENT_PATH, URI[1:])
     type_of_file = file_path.split('.')[-1]
@@ -82,16 +80,31 @@ def resolve_uri(URI):
         'directory': 'directory'
     }
     if os.path.isdir(file_path):
-        content = os.listdir(os.path.join(os.getcwd(), file_path))
-        print(content)
-        content = html_helper('response.html', content)
-        type_of_file = 'html'
-        file_size = os.stat(os.path.join(os.getcwd(), file_path)).st_size
-        content = open(os.path.join(os.getcwd(),'response.html'), 'rb').read()
-    elif os.path.isfile(file_path) and URI is not '.' or '..':
-        content = open(file_path).read()
-        file_size = os.path.getsize(file_path)
-    return (content, file_size, content_type_switcher[type_of_file])
+        if not file_path.endswith('images'):
+            content = html_maker.html_str_maker(os.listdir(os.path.join(os.getcwd(), file_path)), f_path=file_path)
+            type_of_file = 'html'
+            file_size = len(content)
+        else:
+            content = html_maker.html_str_maker(os.listdir(os.path.join(os.getcwd(), file_path)), file_path)
+            type_of_file = 'html'
+            file_size = len(content)
+    else:
+        if os.path.isfile(file_path):
+            print('Inside of endswith(jpg): {}'.format(file_path))
+            if file_path.endswith('jpg'):
+                type_of_file = 'jpg'
+                with (file_path, 'rb') as img:
+                    content += img.read()
+                print('jpgs: {}'.format(content))
+                file_size = os.path.getsize(file_path)
+            elif file_path.endswith('png'):
+                type_of_file = 'png'
+                content = open(file_path.read(file_path, 'rb'))
+                file_size = os.path.getsize(file_path)
+            else:
+                content = open(file_path).read()
+                file_size = os.path.getsize(file_path)
+    return content, file_size, content_type_switcher[type_of_file]
 
 
 def response_error(error_code):
@@ -121,6 +134,8 @@ def parse_request(request):
         raise ValueError
     else:
         return words[1]
+
+
 if __name__ == '__main__':  # pragma: no cover
     from gevent.server import StreamServer
     from gevent.monkey import patch_all
