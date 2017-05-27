@@ -1,29 +1,25 @@
 # -*- coding: utf-8 -*-
-"""Server for http server assignment."""
+"""Concurrency server for the http server project."""
 from __future__ import unicode_literals
 from email.utils import formatdate
-import html_maker
+from html_maker import html_helper
 import socket
 import sys
 import os
 
 
-CURRENT_PATH = 'src'
+CURRENT_PATH = '../src'
 
 
-def main():  # pragma: no cover
+def main(socket, address):  # pragma: no cover
     """Main server loop. Logs data into log variable until it finds a certain character. Then returns response."""
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
-    address = ('127.0.0.1', 10001)
-    server.bind(address)
-    server.listen(1)
     while True:
         try:
-            connection, address = server.accept()
+            #socket, address = server.accept()
             log = b""
             flag = True
             while flag is True:
-                more = connection.recv(8)
+                more = socket.recv(8)
                 log += more
                 if log.decode('utf8').endswith('\r\n\r\n'):
                     flag = False
@@ -31,32 +27,33 @@ def main():  # pragma: no cover
             URI = parse_request(log.decode('utf8'))
             content = resolve_uri(URI)
             response = response_ok(content)
-            connection.sendall(response.encode('utf8'))
-            connection.close()
+            socket.sendall(response.encode('utf8'))
+            socket.close()
         except KeyboardInterrupt:
             server.shutdown(socket.SHUT_WR)
             server.close()
             sys.exit(0)
         except TypeError:
             response = response_error(404)
-            connection.sendall(response.encode('utf8'))
-            connection.close()
+            socket.sendall(response.encode('utf8'))
+            socket.close()
         except LookupError:
             response = response_error(501)
-            connection.sendall(response.encode('utf8'))
-            connection.close()
+            socket.sendall(response.encode('utf8'))
+            socket.close()
         except ValueError:
             response = response_error(400)
-            connection.sendall(response.encode('utf8'))
-            connection.close()
+            socket.sendall(response.encode('utf8'))
+            socket.close()
         except IOError:
             response = response_error(404)
-            connection.sendall(response.encode('utf8'))
-            connection.close()
+            socket.sendall(response.encode('utf8'))
+            socket.close()
         except NameError:
             response = response_error(505)
-            connection.sendall(response.encode('utf8'))
-            connection.close()
+            socket.sendall(response.encode('utf8'))
+            socket.close()
+
 
 
 def response_ok(body_response):  # pragma: no cover
@@ -67,6 +64,7 @@ def response_ok(body_response):  # pragma: no cover
     today_date = str(formatdate(usegmt=True))
     response = 'HTTP/1.1 200 OK \r\nDate: {}\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n{}\r\n\r\n'.format(today_date, file_size, content_type, content)
     return response
+
 
 
 def resolve_uri(URI):
@@ -84,31 +82,16 @@ def resolve_uri(URI):
         'directory': 'directory'
     }
     if os.path.isdir(file_path):
-        if not file_path.endswith('images'):
-            content = html_maker.html_str_maker(os.listdir(os.path.join(os.getcwd(), file_path)), f_path=file_path)
-            type_of_file = 'html'
-            file_size = len(content)
-        else:
-            content = html_maker.html_str_maker(os.listdir(os.path.join(os.getcwd(), file_path)), file_path)
-            type_of_file = 'html'
-            file_size = len(content)
-    else:
-        if os.path.isfile(file_path):
-            print('Inside of endswith(jpg): {}'.format(file_path))
-            if file_path.endswith('jpg'):
-                type_of_file = 'jpg'
-                with (file_path, 'rb') as img:
-                    content += img.read()
-                print('jpgs: {}'.format(content))
-                file_size = os.path.getsize(file_path)
-            elif file_path.endswith('png'):
-                type_of_file = 'png'
-                content = open(file_path.read(file_path, 'rb'))
-                file_size = os.path.getsize(file_path)
-            else:
-                content = open(file_path).read()
-                file_size = os.path.getsize(file_path)
-    return content, file_size, content_type_switcher[type_of_file]
+        content = os.listdir(os.path.join(os.getcwd(), file_path))
+        print(content)
+        content = html_helper('response.html', content)
+        type_of_file = 'html'
+        file_size = os.stat(os.path.join(os.getcwd(), file_path)).st_size
+        content = open(os.path.join(os.getcwd(),'response.html'), 'rb').read()
+    elif os.path.isfile(file_path) and URI is not '.' or '..':
+        content = open(file_path).read()
+        file_size = os.path.getsize(file_path)
+    return (content, file_size, content_type_switcher[type_of_file])
 
 
 def response_error(error_code):
@@ -128,20 +111,19 @@ def parse_request(request):
     responsible for parsing http requests
     """
     words = request.split()
-    print('Request: {}'.format(request))
+    print('Inside of parse_request: {} '.format(words))
     parts_of_request = ['GET', 'HTTP/1.1', 'Host:']
     if words[0] != parts_of_request[0]:
-        print('Lookup Error: {} '.format(words[0]))
         raise LookupError
     elif words[2] != parts_of_request[1]:
-        print('Name Error: {} '.format(words[2]))
         raise NameError
     elif words[3] != parts_of_request[2]:
-        print('Value Error: {} '.format(words[3]))
         raise ValueError
     else:
         return words[1]
-
-
 if __name__ == '__main__':  # pragma: no cover
-    main()
+    from gevent.server import StreamServer
+    from gevent.monkey import patch_all
+    patch_all()
+    server = StreamServer(('127.0.0.1', 10001), main)
+    server.serve_forever()

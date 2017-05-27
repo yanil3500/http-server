@@ -19,7 +19,8 @@ def start_client(msg):
     string message. Then parses the response using the special character. Removes character
     to output response.
     """
-    addr_info = socket.getaddrinfo('127.0.0.1', 5549)
+
+    addr_info = socket.getaddrinfo('127.0.0.1', 10001)
     stream_info = [attr for attr in addr_info if attr[1] == socket.SOCK_STREAM][0]
     client = socket.socket(*stream_info[:3])
     client.connect(stream_info[-1])
