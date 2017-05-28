@@ -4,9 +4,10 @@ setup for http-server
 from setuptools import setup
 
 DEPENDENCIES = ['pytest', 'pytest-cov', 'ipython']
-MODULES = ['server', 'client', 'html_maker']
+MODULES = ['server', 'client', 'html_maker', 'concurrency']
 EXTRA_PACKAGES = {
-    'test': ['tox']
+    'test': ['tox'],
+    'concurrency': ['gevent']
 }
 CONSOLE_SCRIPTS = {
     'console_scripts': [
